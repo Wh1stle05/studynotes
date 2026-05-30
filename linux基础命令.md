@@ -95,83 +95,99 @@ $ ls -i
 ---
 
 ## 3. 创建、复制、移动、删除
-
-
-
-### `mkdir`
+### 3.1 `mkdir`
 
 创建目录。
 
 ```bash
-$ mkdir ./demo
-```
-递归创建，如果父目录不存在则一并创建。
-```bash
-$ mkdir -p ./demo/a/b
+$ mkdir demo
+$ mkdir -p demo/a/b
 ```
 
+- `-p`：递归创建多级目录
+- 父目录不存在时，自动创建完整路径
 
-### `touch`
+常见场景：
 
-创建空文件。
+- 创建项目目录
+- 创建日志目录
+- 创建临时测试目录
+
+### 3.2 `touch`
+
+创建空文件，或更新文件时间戳。
 
 ```bash
 $ touch demo/a/file1.txt
 ```
 
-修改文件时间戳,可用于测试定时任务或备份系统逻辑。
-
 ```bash
 $ touch -t 202612251200.00 document.txt
-# touch -t CCYYMMDDHHMM.SS filename
 ```
-### `cp`
 
-复制文件。
+- `-t`：手动指定修改时间
+- 常用于测试定时任务、备份任务、文件监听逻辑
+
+### 3.3 `cp`
+
+复制文件或目录。
 
 ```bash
-#同名备份
-$ cp demo/a/file2.txt demo/backup/   
-#异名备份
+$ cp demo/a/file2.txt demo/backup/
 $ cp demo/a/file2.txt demo/backup/file3.txt
 ```
-递归复制。
+
+第一种写法表示复制到目标目录，文件名保持不变。  
+第二种写法表示复制到目标路径，并使用新文件名。
+
+递归复制目录时使用 `-r`。
+
 ```bash
-$ cp -r nginx
+$ cp -r nginx nginx-copy
 ```
-`cp -r` (**Recursive**)复制将会导致子目录和文件的**权限**，**时间戳**，**所有者**发生变化，会改为执行命令的用户
+
+归档式复制使用 `-a`。
+
 ```bash
-$ cp -a nginx
+$ cp -a nginx nginx-archive
 ```
-`cp -a`(**Archive**)等同于`cp -dR --preserve=all`<br>
 
-该复制尽力使目标文件与源文件一模一样
+- `-r`：递归复制目录
+- `-a`：尽量保留原始属性，包括权限、时间戳、链接等
 
-**保留链接 (`-d`)**： 如果源文件里有一个符号链接（快捷方式），`-a` 会复制这个链接本身；而 `-r` 可能会把链接指向的实际内容复制一遍。
+常见使用场景：
 
-**保留属性 (`--preserve=all`)**： 强制保留原始的**所有者（Owner）**、**所属组（Group）**、**权限（Permissions）**以及**时间戳（Timestamps）**。
+- 备份配置文件
+- 复制代码目录
+- 保留目录结构迁移文件
 
-**递归复制 (`-R`)**： 包含所有子目录。
+### 3.4 `mv`
 
-### `mv`
-
-移动或重命名文件。
+移动文件或重命名文件。
 
 ```bash
 $ mv demo/a/file3.txt demo/a/file3-renamed.txt
 ```
 
+常见使用场景：
 
+- 文件重命名
+- 目录迁移
+- 临时文件整理
 
-### `rm`
+### 3.5 `rm`
 
-删除文件。
+删除文件或目录。
 
 ```bash
 $ rm demo/x/delete.txt
+$ rm -r demo/x
 ```
 
+- `-r`：递归删除目录
+- `-f`：强制删除，不提示确认
 
+删除命令属于高风险命令，执行前需要再次确认目标路径。
 
 ---
 
@@ -188,6 +204,9 @@ beta
 gamma
 ```
 
+- 适合查看小文件
+- 如果文件较大，通常改用 `less`、`head` 或 `tail`
+
 ### `head`
 
 查看前几行。
@@ -198,6 +217,9 @@ alpha
 beta
 ```
 
+- 默认输出前 10 行
+- `-n` 可以指定行数
+
 ### `tail`
 
 查看后几行。
@@ -207,9 +229,20 @@ $ tail -n 1 demo/a/file2.txt
 gamma
 ```
 
+- 默认输出最后 10 行
+- 常用于查看日志文件末尾内容
+- `-f` 可以持续跟踪新增内容
+
 ### `tail -f`
 
 适合持续查看日志文件。
+
+```bash
+$ tail -f app.log
+```
+
+- 适合观察运行中的日志输出
+- 常用于调试接口、服务启动和报错信息
 
 ---
 
@@ -224,6 +257,17 @@ $ grep -n 'beta' demo/a/file2.txt
 2:beta
 ```
 
+- `-n`：显示行号
+- `-i`：忽略大小写
+- `-r`：递归搜索目录
+- `-v`：反向匹配
+
+常见场景：
+
+- 从日志中找错误关键词
+- 从配置文件中找某个变量
+- 从代码里找某个函数名
+
 ### `find`
 
 按条件查找文件。
@@ -233,6 +277,18 @@ $ find demo -type f | sort
 demo/a/file1.txt
 demo/a/file2.txt
 demo/a/file3-renamed.txt
+```
+
+- `-name`：按文件名查找
+- `-type f`：查找普通文件
+- `-type d`：查找目录
+- `-maxdepth`：限制搜索层级
+
+示例：
+
+```bash
+$ find . -name "*.log"
+$ find /var/log -type f
 ```
 
 ---
@@ -249,6 +305,18 @@ $ ls -l run.sh
 -rwxr-xr-x 1 a3165 a3165 8 Apr 21 10:34 run.sh
 ```
 
+- `644`：常见普通文件权限
+- `755`：常见脚本文件权限
+- `chmod +x`：添加可执行权限
+
+常见写法：
+
+```bash
+$ chmod 644 config.yaml
+$ chmod 755 start.sh
+$ chmod +x start.sh
+```
+
 ### `chown`
 
 修改文件所有者和所属组。
@@ -256,6 +324,9 @@ $ ls -l run.sh
 ```bash
 $ chown user:group test.txt
 ```
+
+- 用于切换文件所有者
+- 常见于部署、数据目录和服务账号场景
 
 ---
 
@@ -273,6 +344,10 @@ root         2  0.0  0.0   3120  1920 ?        Sl   10:24   0:00 /init
 root        10  0.0  0.0   3164  1968 ?        Sl   10:24   0:00 plan9 --control-socket 7 --log-level 4 --server-fd 8 --pipe-fd 10 --log-truncate
 root        46  0.0  0.1  66816 18656 ?        S<s  10:24   0:00 /usr/lib/systemd/systemd-journald
 ```
+
+- `ps aux`：常见写法，显示所有进程
+- `ps -ef`：另一种常用格式
+- `head -n 5`：只看前几行，避免输出过长
 
 ### `top`
 
@@ -292,6 +367,9 @@ MiB Swap:   4096.0 total,   4096.0 free,      0.0 used.  14308.7 avail Mem
    10 root      20   0    3164   1968   1920 S   0.0   0.0   0:00.08 init
 ```
 
+- `top` 适合快速查看 CPU、内存、负载
+- 常用于排查机器卡顿、服务占用高、系统资源异常
+
 ### `kill`
 
 结束进程。
@@ -300,6 +378,10 @@ MiB Swap:   4096.0 total,   4096.0 free,      0.0 used.  14308.7 avail Mem
 $ kill 1234
 $ kill -9 1234
 ```
+
+- `kill`：发送终止信号
+- `kill -9`：强制结束
+- 优先使用普通 `kill`，无效时再考虑 `-9`
 
 ---
 
@@ -317,6 +399,16 @@ LISTEN 0      511        127.0.0.1:46451      0.0.0.0:*
 LISTEN 0      4096      127.0.0.54:53         0.0.0.0:*
 ```
 
+- `-l`：只看监听状态
+- `-n`：数字形式显示
+- `-t`：TCP
+- `-p`：显示进程信息
+
+常见用途：
+
+- 查看服务是否真的监听端口
+- 判断端口是否被占用
+
 ### `curl`
 
 请求 HTTP 接口并查看返回。
@@ -326,6 +418,10 @@ $ curl -I http://127.0.0.1:1
 HTTP/1.1 502 Bad Gateway
 Content-Length: 0
 ```
+
+- `-I`：只查看响应头
+- 常用于验证接口连通性
+- 也可以配合 `-v` 看详细请求过程
 
 ### `curl -I`
 
@@ -351,6 +447,9 @@ PING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.
 rtt min/avg/max/mdev = 0.022/0.022/0.022/0.000 ms
 ```
 
+- `ping` 适合检查网络是否可达
+- 常用于先判断主机层面连通性
+
 ---
 
 ## 9. 磁盘与内存
@@ -360,33 +459,33 @@ rtt min/avg/max/mdev = 0.022/0.022/0.022/0.000 ms
 查看磁盘使用情况。
 
 ```bash
-$ df -h | head -n 5
-Filesystem                                Size  Used Avail Use% Mounted on
-none                                      7.8G     0  7.8G   0% /usr/lib/modules/6.6.87.2-microsoft-standard-WSL2
-none                                      7.8G  4.0K  7.8G   1% /mnt/wsl
-drivers                                   450G  312G  138G  70% /usr/lib/wsl/drivers
-/dev/sdd                                 1007G   53G  904G   6% /
+$ df -h
 ```
+
+- `-h`：以人类可读单位显示
+- 常用于判断磁盘是否快满
 
 ### `du`
 
-查看目录占用大小。
+查看目录或文件占用大小。
 
 ```bash
 $ du -sh /home/a3165/studynotes
-212K	/home/a3165/studynotes
 ```
+
+- `-s`：只显示总大小
+- `-h`：以人类可读单位显示
 
 ### `free`
 
-查看内存情况。
+查看内存使用情况。
 
 ```bash
-$ free -h | head -n 5
-               total        used        free      shared  buff/cache   available
-Mem:            15Gi       1.6Gi        10Gi       4.5Mi       3.4Gi        13Gi
-Swap:          4.0Gi          0B       4.0Gi
+$ free -h
 ```
+
+- 常用于判断系统内存是否紧张
+- 也可结合 `top` 一起看
 
 ---
 
@@ -398,49 +497,64 @@ Swap:          4.0Gi          0B       4.0Gi
 
 ```bash
 $ tar -czvf pkg.tar.gz pkg
+$ tar -xzvf pkg.tar.gz
 ```
 
-查看归档内容：
+- `-c`：创建归档
+- `-x`：解包
+- `-z`：使用 gzip
+- `-v`：显示过程
+- `-f`：指定文件名
 
-```bash
-$ tar -tzvf pkg.tar.gz
-drwxr-xr-x a3165/a3165       0 2026-04-21 10:34 pkg/
-drwxr-xr-x a3165/a3165       0 2026-04-21 10:34 pkg/inner/
--rw-r--r-- a3165/a3165      12 2026-04-21 10:34 pkg/inner/readme.txt
-```
+常见场景：
+
+- 打包代码目录
+- 备份配置文件
+- 传输服务文件
 
 ---
 
-## 11. 命令路径
+## 11. 实用补充
 
 ### `which`
 
-查看命令位置。
+查看命令所在路径。
 
 ```bash
 $ which zsh
-/usr/bin/zsh
 $ which curl
-/usr/bin/curl
 $ which tar
-/usr/bin/tar
+```
+
+### `history`
+
+查看历史命令。
+
+```bash
+$ history
+```
+
+### `clear`
+
+清屏。
+
+```bash
+$ clear
 ```
 
 ---
 
 ## 12. 小结
 
-Linux 基础命令的学习重点不是背参数，而是能够在实际场景中完成以下操作：
+Linux 基础命令的重点不在于死记参数，而在于能够快速完成以下事情：
 
-- 找到当前目录
-- 看懂目录结构
-- 创建、复制、移动、删除文件
-- 查看文件内容和日志
-- 查找文本
-- 修改权限
-- 查看进程和端口
-- 判断磁盘和内存状态
+- 创建和管理文件
+- 查看文件内容
+- 搜索文本
+- 管理权限
+- 查看进程
+- 判断端口和网络
+- 查看磁盘和内存
 - 打包和解包文件
-- 确认命令所在路径
 
-如果进一步用于实习准备，重点应当放在“命令执行后如何验证结果”和“排障顺序如何形成”上。
+后续学习中，建议把这些命令和排障场景结合起来理解，而不是单独背诵。
